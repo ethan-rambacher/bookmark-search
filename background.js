@@ -1,15 +1,19 @@
 chrome.omnibox.onInputChanged.addListener(
     function(text, suggest) {
-	suggest(completion_dict[text]);
+	var sugg = completion_dict[text];
+	if (sugg != undefined){
+	    chrome.omnibox.setDefaultSuggestion({"description":completion_dict[text][0].description});
+	    suggest(
+		sugg
+	    );
+	}
     });
 
 // This event is fired with the user accepts the input in the omnibox.
 chrome.omnibox.onInputEntered.addListener(
     function(text) {
-	console.log('inputEntered: ' + text);
 	// change tab location to bookmark URL
 	var new_url = bm_dict[text.toLowerCase()];
-	console.log(new_url);
 	if (new_url == undefined){
 	    alert("Bookmark '"+text+"' not found");
 	} else {
@@ -25,7 +29,7 @@ function addCompletions(compdict, title){
 	var part = title.substr(0,i);
 	if (!compdict.hasOwnProperty(part))
 	    compdict[part] = [];
-	compdict[part].push({content: title, description: title});
+	compdict[part].push({content: title, description: "<match>"+title+"</match>"});
     }
 }
 
@@ -37,7 +41,6 @@ function addBookmarks(urldict, compdict, tree){
 	    if (subtree && subtree.hasOwnProperty("url")){
 		urldict[subtree.title.toLowerCase()] = subtree.url;
 		addCompletions(compdict, subtree.title.toLowerCase());
-		console.log(subtree.title+", "+subtree.url);
 	    }
 	    addBookmarks(urldict, compdict, subtree.children);
 	}

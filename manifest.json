@@ -3,7 +3,7 @@
 
     "name": "Bookmark Search",
     "description": "This extension allows you to search your bookmarks",
-    "version": "1.0",
+    "version": "1.1",
 
     "omnibox": { "keyword" : "%" },
     
