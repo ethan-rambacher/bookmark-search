@@ -1,9 +1,6 @@
 chrome.omnibox.onInputChanged.addListener(
     function(text, suggest) {
-	suggest([
-	    {content: text + " one", description: "the first one"},
-	    {content: text + " number two", description: "the second entry"}
-	]);
+	suggest(completion_dict[text]);
     });
 
 // This event is fired with the user accepts the input in the omnibox.
@@ -22,23 +19,35 @@ chrome.omnibox.onInputEntered.addListener(
 	}
     });
 
+// add all completions to dictionary
+function addCompletions(compdict, title){
+    for (var i=1; i<=title.length; ++i){
+	var part = title.substr(0,i);
+	if (!compdict.hasOwnProperty(part))
+	    compdict[part] = [];
+	compdict[part].push({content: title, description: title});
+    }
+}
+
 // construct dictionary of bookmark titles and URLs
-function addBookmarks(dict, tree){
+function addBookmarks(urldict, compdict, tree){
     if (tree != undefined){
 	for (var i=0; i<tree.length; ++i){
 	    var subtree = tree[i];
 	    if (subtree && subtree.hasOwnProperty("url")){
-		dict[subtree.title.toLowerCase()] = subtree.url;
+		urldict[subtree.title.toLowerCase()] = subtree.url;
+		addCompletions(compdict, subtree.title.toLowerCase());
 		console.log(subtree.title+", "+subtree.url);
 	    }
-	    addBookmarks(dict, subtree.children);
+	    addBookmarks(urldict, compdict, subtree.children);
 	}
     }
 }
 
 var bm_dict = {};
+var completion_dict = {};
 chrome.bookmarks.getTree(function(nodes){
-    addBookmarks(bm_dict, nodes);
+    addBookmarks(bm_dict, completion_dict, nodes);
 });
 
 // TODO deal with duplicate names
