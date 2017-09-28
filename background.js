@@ -11,7 +11,7 @@ chrome.omnibox.onInputEntered.addListener(
     function(text) {
 	console.log('inputEntered: ' + text);
 	// change tab location to bookmark URL
-	var new_url = bm_dict[text];
+	var new_url = bm_dict[text.toLowerCase()];
 	console.log(new_url);
 	if (new_url == undefined){
 	    alert("Bookmark '"+text+"' not found");
@@ -28,7 +28,7 @@ function addBookmarks(dict, tree){
 	for (var i=0; i<tree.length; ++i){
 	    var subtree = tree[i];
 	    if (subtree && subtree.hasOwnProperty("url")){
-		dict[subtree.title] = subtree.url;
+		dict[subtree.title.toLowerCase()] = subtree.url;
 		console.log(subtree.title+", "+subtree.url);
 	    }
 	    addBookmarks(dict, subtree.children);
@@ -36,16 +36,9 @@ function addBookmarks(dict, tree){
     }
 }
 
-    
 var bm_dict = {};
 chrome.bookmarks.getTree(function(nodes){
     addBookmarks(bm_dict, nodes);
-    console.log(JSON.stringify(bm_dict));
-//    console.log(JSON.stringify(nodes));
-    //for (var n in nodes[0].children){
-//	bm_dict[n.title] = n.url;
-//	console.log(n.title+", "+n.url);
-  //  }
 });
 
 // TODO deal with duplicate names
