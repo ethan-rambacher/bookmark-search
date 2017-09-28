@@ -11,17 +11,43 @@ chrome.omnibox.onInputEntered.addListener(
     function(text) {
 	console.log('inputEntered: ' + text);
 	// change tab location to bookmark URL
-	chrome.bookmarks.search({title:text}, function(nodes){
-	    console.log(nodes);
-	    var new_url = nodes[0].url;
-	    console.log(new_url);
-	    if (new_url == undefined){
-		alert("Bookmark '"+text+"' not found");
-	    } else {
-		chrome.tabs.query({currentWindow: true, active: true}, function (tab) {
-		    chrome.tabs.update(undefined, {url: new_url});
-		});
-	    }
-	});
+	var new_url = bm_dict[text];
+	console.log(new_url);
+	if (new_url == undefined){
+	    alert("Bookmark '"+text+"' not found");
+	} else {
+	    chrome.tabs.query({currentWindow: true, active: true}, function (tab) {
+		chrome.tabs.update(undefined, {url: new_url});
+	    });
+	}
     });
 
+// construct dictionary of bookmark titles and URLs
+function addBookmarks(dict, tree){
+    if (tree != undefined){
+	for (var i=0; i<tree.length; ++i){
+	    var subtree = tree[i];
+	    if (subtree && subtree.hasOwnProperty("url")){
+		dict[subtree.title] = subtree.url;
+		console.log(subtree.title+", "+subtree.url);
+	    }
+	    addBookmarks(dict, subtree.children);
+	}
+    }
+}
+
+    
+var bm_dict = {};
+chrome.bookmarks.getTree(function(nodes){
+    addBookmarks(bm_dict, nodes);
+    console.log(JSON.stringify(bm_dict));
+//    console.log(JSON.stringify(nodes));
+    //for (var n in nodes[0].children){
+//	bm_dict[n.title] = n.url;
+//	console.log(n.title+", "+n.url);
+  //  }
+});
+
+// TODO deal with duplicate names
+// TODO convert to lowercase
+// TODO include partial completion results, or add addl dict for partials
